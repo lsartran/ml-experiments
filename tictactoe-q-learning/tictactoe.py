@@ -7,11 +7,16 @@ We are not taking into account symmetries, nor the fact that players play altern
 Actions: { place a stone at position (i,j) where i is the row number, j the column number | 0 <= i <= 2, 0 <= j <= 2 }
 
 Python 3
+
+TODO:
+- smarter representation of the grid
+- operate not on the set of grids G, but on the quotient set G / ~ where x~y iff there is an element f of D_4 such that f(x)=y
 """
 
 from enum import IntEnum
-
 import random
+
+import tqdm
 
 class Square(IntEnum):
     EMPTY = 0
@@ -34,11 +39,7 @@ class Grid(object):
         self.grid = {(i,j): Square.EMPTY for i in range(3) for j in range(3)}
         if initconf is not None:
             for (i,j), sq in initconf:
-                if not ((i >= 0) and (i <= 2) and (j >= 0) and (j <= 2)):
-                    raise IndexError
-                if not isinstance(sq, Square):
-                    raise TypeError
-                self.grid[(i,j)] = sq
+                self[(i,j)] = sq
         assert all((i,j) in self.grid for i in range(3) for j in range(3))
 
     def __hash__(self):
@@ -63,9 +64,6 @@ class Grid(object):
     def __contains__(self, key):
         return self.grid.__contains__(key)
 
-    def items(self):
-        return self.grid.items()
-
     def __setitem__(self, pos, sq):
         if pos not in self:
             raise IndexError
@@ -77,32 +75,102 @@ class Grid(object):
             raise InvalidTicTacToeMove
         self.grid[pos] = sq
 
+    def items(self):
+        return self.grid.items()
+
     def full(self):
         return not any(sq == Square.EMPTY for _, sq in self.items())
 
+    def winner(self):
+        # FIXME extremely naive, there are better things to do than to test lines and cols and diags like this
+        lines = [[(i,j) for j in range(3)] for i in range(3)]
+        cols = [[(i,j) for i in range(3)] for j in range(3)]
+        diags = [[(i,i) for i in range(3)],[(i,2-i) for i in range(3)]]
+        three = lines + cols + diags
+        for l in three:
+            squares = [self[pos] for pos in l]
+            for candidate in {Square.CROSS, Square.NOUGHT}:
+                if all(sq == candidate for sq in squares):
+                    return candidate
+        return False
+
+
 class RandomPlayer(object):
-    def play(self, grid, sq):
+    def __init__(self, square):
+        self.square = square
+
+    def play(self, grid):
         empty_squares = [(i,j) for (i,j),sq in grid.items() if sq == Square.EMPTY]
         pos = random.choice(empty_squares)
         return pos
+
+
+class RandomStable(object):
+    def player(self, square):
+        return RandomPlayer(square)
+
+
+class LearningStable(object);
+    def __init__(self):
+        self.quality = {}
+
+    def player(self, square):
+        # XXX beware of different players using the same quality but playing with X instead of O!
+        return LearningPlayer(square, quality)
+
+
+class LearningPlayer(object):
+    def __init__(self, square, quality):
+        raise NotImplementedError
+
 
 def battle(player1, player2):
     grid = Grid()
 
     while not grid.full():
-        pos = player1.play(grid, Square.NOUGHT)
-        print("Player 1",pos)
+        pos = player1.play(grid)
+        #print("Player 1",pos)
         grid[pos] = Square.NOUGHT
 
+        w = grid.winner()
+        if w:
+            #print("{} won!".format(str(w)))
+            break
+
         if not grid.full():
-            pos = player2.play(grid, Square.CROSS)
-            print("Player 2",pos)
+            pos = player2.play(grid)
+            #print("Player 2",pos)
             grid[pos] = Square.CROSS
 
-    print(str(grid))
+            w = grid.winner()
+            if w:
+                #print("{} won!".format(str(w)))
+                break
+    else:
+        #print("Draw")
+        w = False
 
-random.seed(42)
-p1 = RandomPlayer()
-p2 = RandomPlayer()
-battle(p1,p2)
+    #print(str(grid))
+    return w
+
+if __name__ == '__main__':
+    random.seed(42)
+    results = {False: 0, Square.NOUGHT: 0, Square.CROSS: 0}
+    num_games = 10000
+    s1 = RandomStable()
+    s2 = RandomStable()
+    for _ in tqdm.tqdm(range(num_games)):
+        for (sq1, sq2) in [(Square.NOUGHT,Square.CROSS),(Square.CROSS, Square.NOUGHT)]:
+            p1 = s1.player(sq1)
+            p2 = s2.player(sq2)
+            res = battle(p1,p2)
+            if res is False:
+                results[False] += 1
+            elif res is sq1:
+                results[1] += 1
+            elif res is sq2:
+                results[2] += 1
+
+    for k,v in results.items():
+        print("{}:\t{}".format(k,0.5*v/num_games))
 
