@@ -49,8 +49,7 @@ class Grid(object):
         return sum(hash(sq)*3**(3*i+j) for (i,j), sq in self.grid.items())
 
     def __str__(self):
-        return """
-+-+-+-+
+        return """+-+-+-+
 |{}|{}|{}|
 +-+-+-+
 |{}|{}|{}|
