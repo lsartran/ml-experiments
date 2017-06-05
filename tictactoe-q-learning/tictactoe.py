@@ -40,13 +40,17 @@ class Grid(object):
     def __init__(self, initconf=None):
         # we want to treat an empty square the way we treat one with a nought or a cross
         self.grid = {(i,j): Square.EMPTY for i in range(3) for j in range(3)}
+        self.value = 0
         if initconf is not None:
             for (i,j), sq in initconf:
                 self[(i,j)] = sq
         assert all((i,j) in self.grid for i in range(3) for j in range(3))
 
     def __hash__(self):
-        return sum(hash(sq)*3**(3*i+j) for (i,j), sq in self.grid.items())
+        return self.value
+
+    def __int__(self):
+        return self.value
 
     def __str__(self):
         return """+-+-+-+
@@ -61,7 +65,8 @@ class Grid(object):
         return self.grid.__getitem__(key)
 
     def __delitem__(self, key):
-        return self.grid.__delitem__(key)
+        raise NotImplementedError
+        #return self.grid.__delitem__(key)
 
     def __contains__(self, key):
         return self.grid.__contains__(key)
@@ -76,6 +81,8 @@ class Grid(object):
         if self[pos] != Square.EMPTY:
             raise InvalidTicTacToeMove
         self.grid[pos] = sq
+        (i,j) = pos
+        self.value += int(sq) * 3**(3*i+j)
 
     def items(self):
         return self.grid.items()
