@@ -21,7 +21,7 @@ import tqdm
 class Square(IntEnum):
     EMPTY = 0
     NOUGHT = 1
-    CROSS = 2
+    CROSS = -1
     def __str__(self):
         if self == self.__class__.EMPTY:
             return " "
