@@ -160,8 +160,8 @@ class LearningPlayer(object):
         self.square = square
         self.team = team
         self.quality = team.quality
-        self.alpha = 0.1
-        self.discount = 0.9
+        self.alpha = 0.01
+        self.discount = 1.0
         self.has_played = False
 
     def play(self, grid):
@@ -219,8 +219,8 @@ def battle(player1, player2):
             #print("{} won!".format(str(w)))
             break
         else:
-            player1.feedback(-0.1, grid)
-            player2.feedback(+0.1, grid)
+            player1.feedback(0.0, grid)
+            player2.feedback(0.0, grid)
 
 
         if not grid.full():
@@ -239,11 +239,11 @@ def battle(player1, player2):
                 #print("{} won!".format(str(w)))
                 break
             else:
-                player1.feedback(+0.1, grid)
-                player2.feedback(-0.1, grid)
+                player1.feedback(0.0, grid)
+                player2.feedback(0.0, grid)
     else:
-        player1.feedback(-0.5, grid)
-        player2.feedback(-0.5, grid)
+        player1.feedback(-0.0, grid)
+        player2.feedback(-0.0, grid)
         w = False
 
     #print(str(grid))
