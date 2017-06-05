@@ -13,12 +13,12 @@ TODO:
 - operate not on the set of grids G, but on the quotient set G / ~ where x~y iff there is an element f of D_4 such that f(x)=y
 """
 
-from enum import IntEnum
+#from enum import IntEnum
 import random
 
 import tqdm
 
-class Square(IntEnum):
+class Square():
     EMPTY = 0
     NOUGHT = 1
     CROSS = -1
@@ -67,8 +67,8 @@ class Grid(object):
     def __setitem__(self, pos, sq):
         if pos not in self:
             raise IndexError
-        if not isinstance(sq, Square):
-            raise TypeError
+        #if not isinstance(sq, Square):
+            #raise TypeError
         if sq == Square.EMPTY:
             raise InvalidTicTacToeMove
         if self[pos] != Square.EMPTY:
