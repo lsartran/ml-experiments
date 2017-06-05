@@ -11,12 +11,15 @@ Python 3
 TODO:
 - smarter representation of the grid
 - operate not on the set of grids G, but on the quotient set G / ~ where x~y iff there is an element f of D_4 such that f(x)=y
+- make a generic decorator to cache method calls
 """
 
 #from enum import IntEnum
 import random
 
 import tqdm
+
+WIN_CACHE = {}
 
 class Square():
     EMPTY = 0
@@ -81,7 +84,7 @@ class Grid(object):
     def full(self):
         return not any(sq == Square.EMPTY for _, sq in self.items())
 
-    def winner(self):
+    def _winner(self):
         # FIXME extremely naive, there are better things to do than to test lines and cols and diags like this
         lines = [[(i,j) for j in range(3)] for i in range(3)]
         cols = [[(i,j) for i in range(3)] for j in range(3)]
@@ -93,6 +96,14 @@ class Grid(object):
                 if all(sq == candidate for sq in squares):
                     return candidate
         return False
+
+    def winner(self):
+        #return self._winner()
+        h = hash(self)
+        sgn = (-1 if h < 0 else 1)
+        if abs(h) not in WIN_CACHE:
+            WIN_CACHE[abs(h)] = sgn * self._winner()
+        return WIN_CACHE[abs(h)] * sgn
 
 
 class RandomPlayer(object):
