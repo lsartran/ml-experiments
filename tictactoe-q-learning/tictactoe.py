@@ -41,6 +41,7 @@ class Grid(object):
         # we want to treat an empty square the way we treat one with a nought or a cross
         self.grid = {(i,j): Square.EMPTY for i in range(3) for j in range(3)}
         self.value = 0
+        self.num_sq = 0
         if initconf is not None:
             for (i,j), sq in initconf:
                 self[(i,j)] = sq
@@ -69,7 +70,8 @@ class Grid(object):
         #return self.grid.__delitem__(key)
 
     def __contains__(self, key):
-        return self.grid.__contains__(key)
+        #return self.grid.__contains__(key)
+        return True
 
     def __setitem__(self, pos, sq):
         if pos not in self:
@@ -83,14 +85,18 @@ class Grid(object):
         self.grid[pos] = sq
         (i,j) = pos
         self.value += int(sq) * 3**(3*i+j)
+        self.num_sq += 1
 
     def items(self):
         return self.grid.items()
 
     def full(self):
-        return not any(sq == Square.EMPTY for _, sq in self.items())
+        #return not any(sq == Square.EMPTY for _, sq in self.items())
+        return self.num_sq == 9
 
     def _winner(self):
+        if self.num_sq < 3:
+            return False
         # FIXME extremely naive, there are better things to do than to test lines and cols and diags like this
         lines = [[(i,j) for j in range(3)] for i in range(3)]
         cols = [[(i,j) for i in range(3)] for j in range(3)]
